@@ -1,0 +1,6 @@
+# executable
+src/gameboy_c
+
+# folders
+.vscode/
+objs/
