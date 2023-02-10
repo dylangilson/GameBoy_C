@@ -9,8 +9,6 @@
 #ifndef PPU_H
 #define PPU_H
 
-#include "gameboy.h"
-
 #define MAX_SPRITES 40 // PPU supports a maximum of 40 sprites at once
 #define GB_LCD_WIDTH 160
 #define GB_LCD_HEIGHT 144
@@ -23,7 +21,7 @@ enum dmg_colour {
 } dmg_colour;
 
 union lcd_colour {
-    dmg_colour dmg; // DMG only has 4 colour options
+    enum dmg_colour dmg; // DMG only has 4 colour options
     uint16_t gbc; // GBC colours: xRGB 1555
 } lcd_colour;
 
@@ -52,23 +50,23 @@ struct gameboy_ppu {
     uint8_t ly; // register ly
     uint8_t lyc; // register lyc
     uint8_t background_palette;
-    uint8_t sprite_palette_0;
-    uint8_t sprite_palette_1;
+    uint8_t sprite_palette0;
+    uint8_t sprite_palette1;
     uint8_t window_x;
     uint8_t window_y;
     uint8_t window_line; // NEW
     uint16_t line_position; // current position within line
     uint8_t oam[MAX_SPRITES * 4]; // Object Attribute Memory (sprite configuration) ; each sprite uses 4 bytes
-    colour_palette background_palettes; // GBC only
-    colour_palette sprites_palettes; // GBC only
+    struct colour_palette background_palettes; // GBC only
+    struct colour_palette sprites_palettes; // GBC only
 } gameboy_ppu;
 
-void reset_ppu(gameboy *gb);
-void sync_ppu(gameboy *gb);
-uint8_t get_lcd_stat(gameboy *gb);
-void set_lcd_stat(gameboy *gb, uint8_t value);
-uint8_t get_lcdc(gameboy *gb);
-void set_lcdc(gameboy *gb, uint8_t value);
-uint8_t get_ly(gameboy *gb);
+void reset_ppu(struct emulator *gameboy);
+void sync_ppu(struct emulator *gameboy);
+uint8_t get_lcd_stat(struct emulator *gameboy);
+void set_lcd_stat(struct emulator *gameboy, uint8_t value);
+uint8_t get_lcdc(struct emulator *gameboy);
+void set_lcdc(struct emulator *gameboy, uint8_t value);
+uint8_t get_ly(struct emulator *gameboy);
 
 #endif

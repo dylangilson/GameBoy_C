@@ -7,8 +7,6 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "gameboy.h"
-
 enum timer_divider {
      GB_TIMER_DIV_1024, // timer frequency: 4096Hz
      GB_TIMER_DIV_16, // timer frequency: 262144Hz
@@ -20,13 +18,13 @@ struct gameboy_timer {
      uint16_t divider_counter;
      uint8_t counter;
      uint8_t modulo;
-     timer_divider divider;
+     enum timer_divider divider;
      bool started;
 } gameboy_timer;
 
-void reset_timer(gameboy *gb);
-void sync_timer(gameboy *gb);
-void set_timer_configuration(gameboy *gb, uint8_t configuration);
-uint8_t get_timer_configuration(gameboy *gb);
+void reset_timer(struct emulator *gameboy);
+void sync_timer(struct emulator *gameboy);
+void set_timer_configuration(struct emulator *gameboy, uint8_t configuration);
+uint8_t get_timer_configuration(struct emulator *gameboy);
 
 #endif

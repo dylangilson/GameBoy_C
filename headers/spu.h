@@ -9,8 +9,6 @@
 #ifndef SPU_H
 #define SPU_H
 
-#include "gameboy.h"
-
 #define GB_SPU_SAMPLE_RATE_DIVISOR 64 // sample SPU once every 64 CPU cycles
 #define GB_SPU_SAMPLE_RATE_HZ (GB_CPU_FREQ_HZ / GB_SPU_SAMPLE_RATE_DIVISOR) // SPU sample rate
 #define GB_SPU_SAMPLE_BUFFER_LENGTH 2048 // each sample contains 2048 frames ; each with two samples for left and right stereo channels
@@ -38,7 +36,7 @@ struct spu_divider {
 } spu_divider;
 
 struct spu_sweep {
-    spu_divider divider; // frequency divider
+    struct spu_divider divider; // frequency divider
     uint8_t shift; // frequency sweep amount
     bool subtract; // true if we subtract the offset ; false if we add the offset
     uint8_t time; // delay between sweep steps in 1/128th of a second ; value is set to 0 if this is disabled
@@ -60,30 +58,30 @@ struct spu_envelope {
 // Sound 1 : rectangluar wave with envelope and frequency sweep
 struct spu_nr1 {
     bool running; // true if sound 1 is currently running
-    spu_duration duration; // Sound 1's length counter
-    spu_sweep sweep; // Sound 1's frequency divider and sweep function
-    spu_rectangle_wave wave;
+    struct spu_duration duration; // Sound 1's length counter
+    struct spu_sweep sweep; // Sound 1's frequency divider and sweep function
+    struct spu_rectangle_wave wave;
     uint8_t envelope_configuration;
-    spu_envelope envelope;
+    struct spu_envelope envelope;
 } spu_nr1;
 
 // Sound 2 : rectangular wave with envelope
 struct spu_nr2 {
     bool running; // true if sound 2 is currently running
-    spu_duration duration; // Sound 2's length counter
-    spu_divider divider; // Sound 2's frequency divider
-    spu_rectangle_wave wave;
+    struct spu_duration duration; // Sound 2's length counter
+    struct spu_divider divider; // Sound 2's frequency divider
+    struct spu_rectangle_wave wave;
     uint8_t envelope_configuration;
-    spu_envelope envelope;
+    struct spu_envelope envelope;
 } spu_nr2;
 
 // Sound 3 : user-defined waveform
 struct spu_nr3 {
     bool enable; // true if sound 3 is enabled
     bool running; // true if sound 3 is currently running
-    spu_duration duration; // Sound 3's length counter
+    struct spu_duration duration; // Sound 3's length counter
     uint8_t t1; // register value for the length of counter
-    spu_divider divider; // Sound 3's frequency divider
+    struct spu_divider divider; // Sound 3's frequency divider
     uint8_t volume_shift; // 1 -> full volume ; 2 -> half volume ; 3 -> quarter volume ; 0 -> muted
     uint8_t ram[GB_NR3_RAM_SIZE]; // RAM of 32 4bit sound samples ; two samples per byte
     uint8_t index;    
@@ -92,9 +90,9 @@ struct spu_nr3 {
 // Sound 4 : Linear Feedback Shift Register noise generation with envelope
 struct spu_nr4 {
     bool running; // true if sound 4 is currently running
-    spu_duration duration; // Sound 4's length counter
+    struct spu_duration duration; // Sound 4's length counter
     uint8_t envelope_configuration;
-    spu_envelope envelope;
+    struct spu_envelope envelope;
     uint16_t lfsr;
     uint8_t lfsr_configuration; // LSFR configuration register (NR43)
     uint32_t counter; // counter to check for next LSFR shift
@@ -106,23 +104,23 @@ struct gameboy_spu {
     uint8_t output_level; // register NR50
     uint8_t sound_mux; // register NR51
     int16_t sound_amp[4][2]; // amplification factor for each sound for both stereo channels
-    spu_nr1 nr1; // Sound 1 state
-    spu_nr2 nr2; // Sound 2 state
-    spu_nr3 nr3; // Sound 3 state
-    spu_nr4 nr4; // Sound 4 state
-    spu_sample_buffer buffers[GB_SPU_SAMPLE_BUFFER_COUNT];
+    struct spu_nr1 nr1; // Sound 1 state
+    struct spu_nr2 nr2; // Sound 2 state
+    struct spu_nr3 nr3; // Sound 3 state
+    struct spu_nr4 nr4; // Sound 4 state
+    struct spu_sample_buffer buffers[GB_SPU_SAMPLE_BUFFER_COUNT];
     unsigned buffer_index; // buffer currently being filled
     unsigned sample_index; // position within current buffer
 } gameboy_spu;
 
-void reset_spu(gameboy *gb);
-void sync_spu(gameboy *gb);
-void update_spu_sound_amp(gameboy *gb);
-void start_spu_nr1(gameboy *gb);
-void start_spu_nr2(gameboy *gb);
-void start_spu_nr3(gameboy *gb);
-void start_spu_nr4(gameboy *gb);
-void reload_spu_duration(spu_duration *duration, unsigned max_duration uint8_t t1);
-void reload_spu_sweep(spu_sweep *sweep, uint8_t configuration);
+void reset_spu(struct emulator *gameboy);
+void sync_spu(struct emulator *gameboy);
+void update_spu_sound_amp(struct emulator *gameboy);
+void start_spu_nr1(struct emulator *gameboy);
+void start_spu_nr2(struct emulator *gameboy);
+void start_spu_nr3(struct emulator *gameboy);
+void start_spu_nr4(struct emulator *gameboy);
+void reload_spu_duration(struct spu_duration *duration, unsigned max_duration, uint8_t t1);
+void reload_spu_sweep(struct spu_sweep *sweep, uint8_t configuration);
 
 #endif

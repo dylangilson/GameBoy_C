@@ -9,8 +9,6 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include "gameboy.h"
-
 struct gameboy_cpu {
      bool interrupt_master_enable;
      bool interrupt_request_enable_next;
@@ -30,7 +28,7 @@ struct gameboy_cpu {
      bool carry_flag;
 } gameboy_cpu;
 
-void reset_cpu(gameboy *gb);
-int32_t run_cpu_cycles(gameboy *gb, int32_t cycles);
+void reset_cpu(struct emulator *gameboy);
+int32_t run_cpu_cycles(struct emulator *gameboy, int32_t cycles);
 
 #endif

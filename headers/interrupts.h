@@ -7,8 +7,6 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
-#include "gameboy.h"
-
 // Interrupt Requests
 
 enum interrupt_request_token {
@@ -24,7 +22,7 @@ struct gameboy_interrupt_request {
     uint8_t interrupt_request_enable;
 } gameboy_interrupt_request;
 
-void reset_interrupt_request(gameboy *gb);
-void trigger_interrupt_request(gameboy *gb, interrupt_request_token value);
+void reset_interrupt_request(struct emulator *gameboy);
+void trigger_interrupt_request(struct emulator *gameboy, enum interrupt_request_token value);
 
 #endif

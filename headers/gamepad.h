@@ -7,8 +7,6 @@
 #ifndef GAMEPAD_H
 #define GAMEPAD_H
 
-#include "gameboy.h"
-
 #define GB_INPUT_RIGHT 0
 #define GB_INPUT_LEFT 1
 #define GB_INPUT_UP 2
@@ -25,9 +23,9 @@ struct gameboy_gamepad {
      bool buttons_selected;
 } gameboy_gamepad;
 
-void reset_gamepad(gameboy *gb);
-void set_gamepad(gameboy *gb, unsigned button, bool pressed);
-void select_gamepad(gameboy *gb, uint8_t selection);
-uint8_t get_gamepad_state(gameboy *gb);
+void reset_gamepad(struct emulator *gameboy);
+void set_gamepad(struct emulator *gameboy, unsigned button, bool pressed);
+void select_gamepad(struct emulator *gameboy, uint8_t selection);
+uint8_t get_gamepad_state(struct emulator *gameboy);
 
 #endif

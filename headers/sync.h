@@ -7,8 +7,6 @@
 #ifndef SYNC_H
 #define SYNC_H
 
-#include "gameboy.h"
-
 #define GB_SYNC_NEVER 10000000 // sync at low frequency if there is no event planned
 
 enum sync_token {
@@ -26,10 +24,10 @@ struct gameboy_sync {
     int32_t next_event[GB_SYNC_NUM]; // timestamp of next time this token must be synchronized
 } gameboy_sync;
 
-void reset_sync(gameboy *gb);
-int32_t resync_sync(gameboy *gb, sync_token token); // resync the token and return the number of cycles since last sync
-void next_sync(gameboy *gb, sync_token token, int32_t cycles);
-void check_sync_events(gameboy *gb);
-void rebase_sync(gameboy *gb);
+void reset_sync(struct emulator *gameboy);
+int32_t resync_sync(struct emulator *gameboy, enum sync_token token); // resync the token and return the number of cycles since last sync
+void next_sync(struct emulator *gameboy, enum sync_token token, int32_t cycles);
+void check_sync_events(struct emulator *gameboy);
+void rebase_sync(struct emulator *gameboy);
 
 #endif

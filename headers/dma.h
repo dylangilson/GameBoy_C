@@ -9,16 +9,14 @@
 #ifndef DMA_H
 #define DMA_H
 
-#include "gameboy.h"
-
 struct gameboy_dma {
     bool running;
     uint16_t source_address;
     uint8_t position; // number of bytes copied so far
 } gameboy_dma;
 
-void reset_dma(gameboy *gb);
-void sync_dma(gameboy *gb);
-void start_dma(gameboy *gb, uint8_t source_address);
+void reset_dma(struct emulator *gameboy);
+void sync_dma(struct emulator *gameboy);
+void start_dma(struct emulator *gameboy, uint8_t source_address);
 
 #endif
