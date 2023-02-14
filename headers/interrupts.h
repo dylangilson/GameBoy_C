@@ -10,11 +10,11 @@
 // Interrupt Requests
 
 enum interrupt_request_token {
-    INTERRUPT_REQUEST_VSYNC, // triggered by LCD VSYNC
-    INTERRUPT_REQUEST_LCD_STAT, // triggered based on LCD STAT value
-    INTERRUPT_REQUEST_TIMER, // triggered by timer overflow
-    INTERRUPT_REQUEST_SERIAL, // triggered by serial transfer completion
-    INTERRUPT_REQUEST_INPUT, // triggered by button press
+    GB_INTERRUPT_REQUEST_VSYNC, // triggered by LCD VSYNC
+    GB_INTERRUPT_REQUEST_LCD_STAT, // triggered based on LCD STAT value
+    GB_INTERRUPT_REQUEST_TIMER, // triggered by timer overflow
+    GB_INTERRUPT_REQUEST_SERIAL, // triggered by serial transfer completion
+    GB_INTERRUPT_REQUEST_INPUT, // triggered by button press
 } interrupt_request_token;
 
 struct gameboy_interrupt_request {
