@@ -19,13 +19,13 @@ int main(int argc, char *argv[]) {
     unsigned i;
 
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <rom>\n", argv[0]);
+        fprintf(stderr, "Not enough command line arguments provided!\n", argv[0]);
         return EXIT_FAILURE;
     }
 
     gameboy = calloc(1, sizeof(*gameboy)); // context contains semaphores ; allocate to the heap so it is visible on all threads
     if (gameboy == NULL) {
-        perror("calloc failed");
+        perror("GameBoy memory allocation failed!\n");
         return EXIT_FAILURE;
     }
 

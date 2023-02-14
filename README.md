@@ -15,7 +15,7 @@
 * change directory to the 'src' folder of the project
 * execute command: make
 * execute command: ./gameboy_c ../roms/<ROM_FILE_NAME>
-* NOTE: Only runs on Linux Operating Systems
+* NOTE: Only runs on Linux Operating System Distributions
 * NOTE: Ensure the ROM you wish to load is in the 'roms' folder of this project
 * NOTE: Will work with .gb and .gbc ROMs
 

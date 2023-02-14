@@ -58,7 +58,7 @@ struct gameboy_ppu {
     uint16_t line_position; // current position within line
     uint8_t oam[MAX_SPRITES * 4]; // Object Attribute Memory (sprite configuration) ; each sprite uses 4 bytes
     struct colour_palette background_palettes; // GBC only
-    struct colour_palette sprites_palettes; // GBC only
+    struct colour_palette sprite_palettes; // GBC only
 } gameboy_ppu;
 
 void reset_ppu(struct emulator *gameboy);

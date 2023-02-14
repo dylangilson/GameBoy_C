@@ -33,6 +33,7 @@ struct gameboy_cart {
     struct gameboy_rtc rtc; // RTC state ; if cartridge has one
 } gameboy_cart;
 
+void load_cart_error(struct gameboy_cart *cart, FILE *file);
 void load_cart(struct emulator *gameboy, const char *rom_path);
 void unload_cart(struct emulator *gameboy);
 void sync_cart(struct emulator *gameboy);

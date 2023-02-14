@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <semaphore.h>
+// #include <semaphore.h>
 
 struct emulator;
 
@@ -31,7 +31,7 @@ struct emulator;
 #include "ui.h"
 
 #define EMULATION_SPEED 1U // NOTE: change this to increase / decrease game speed
-#define CPU_FREQUENCY_HZ 4194304U * EMULATION_SPEED // DMG CPU frequency ; Super GameBoy runs slightly faster at 4.295454MHz
+#define CPU_FREQUENCY_HZ 4194304U * EMULATION_SPEED // CPU frequency ; Super GameBoy runs slightly faster at 4.295454MHz
 
 struct emulator {
     bool gbc; // true if emulating a GBC ; false if emulating a DMG

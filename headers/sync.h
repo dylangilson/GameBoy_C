@@ -26,7 +26,7 @@ struct gameboy_sync {
 
 void reset_sync(struct emulator *gameboy);
 int32_t resync_sync(struct emulator *gameboy, enum sync_token token); // resync the token and return the number of cycles since last sync
-void next_sync(struct emulator *gameboy, enum sync_token token, int32_t cycles);
+void sync_next(struct emulator *gameboy, enum sync_token token, int32_t cycles);
 void check_sync_events(struct emulator *gameboy);
 void rebase_sync(struct emulator *gameboy);
 

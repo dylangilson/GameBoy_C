@@ -4,8 +4,7 @@
  * Feburary 8, 2023
  */
 
-#include "bus.h"
-#include "timer.h"
+#include "emulator.h"
 
 // ROM (bank 0 + 1)
 #define ROM_BASE 0x0000U
@@ -80,7 +79,6 @@
 #define REGISTER_WINDOW_X 0xFF4BU // Window X position 
 #define REGISTER_IE 0xFFFFU // Interrupt Enable register 
 // gbc-only registers
-#define REGISTER_KEY1 0xFF4DU // Speed control TODO: remove this
 #define REGISTER_VBK 0xFF4FU // VRAM banking
 #define REGISTER_HDMA1 0xFF51U // HDMA source addressess high
 #define REGISTER_HDMA2 0xFF52U // HDMA source addressess low
@@ -196,7 +194,7 @@ uint8_t read_bus(struct emulator *gameboy, uint16_t address) {
     }
 
     if (address == REGISTER_NR12) {
-        return gameboy->spu.nr1.envelope_config;
+        return gameboy->spu.nr1.envelope_configuration;
     }
 
     if (address == REGISTER_NR13) {
@@ -212,7 +210,7 @@ uint8_t read_bus(struct emulator *gameboy, uint16_t address) {
     }
 
     if (address == REGISTER_NR22) {
-        return gameboy->spu.nr2.envelope_config;
+        return gameboy->spu.nr2.envelope_configuration;
     }
 
     if (address == REGISTER_NR23) {
@@ -249,11 +247,11 @@ uint8_t read_bus(struct emulator *gameboy, uint16_t address) {
     }
 
     if (address == REGISTER_NR42) {
-        return gameboy->spu.nr4.envelope_config;
+        return gameboy->spu.nr4.envelope_configuration;
     }
 
     if (address == REGISTER_NR43) {
-        return gameboy->spu.nr4.lfsr_config;
+        return gameboy->spu.nr4.lfsr_configuration;
     }
 
     if (address == REGISTER_NR44) {
@@ -307,7 +305,7 @@ uint8_t read_bus(struct emulator *gameboy, uint16_t address) {
     }
 
     if (address == REGISTER_DMA) {
-        return gameboy->dma.source >> 8;
+        return gameboy->dma.source_address >> 8;
     }
 
     if (address == REGISTER_BACKGROUND_PALETTE) {
@@ -334,33 +332,24 @@ uint8_t read_bus(struct emulator *gameboy, uint16_t address) {
         return gameboy->interrupt_request.interrupt_request_enable;
     }
 
-    if (gameboy->gbc && address == REGISTER_KEY1) {
-        uint8_t r = 0;
-
-        r |= gameboy->double_speed << 7;
-        r |= gameboy->speed_switch_pending;
-
-        return r | 0x7E;
-    }
-
     if (gameboy->gbc && address == REGISTER_VBK) {
         return gameboy->video_ram_high_bank | 0xFE;
     }
 
     if (gameboy->gbc && address == REGISTER_HDMA1) {
-        return gameboy->hdma.source >> 8;
+        return gameboy->hdma.source_address >> 8;
     }
 
     if (gameboy->gbc && address == REGISTER_HDMA2) {
-        return gameboy->hdma.source & 0xFF;
+        return gameboy->hdma.source_address & 0xFF;
     }
 
     if (gameboy->gbc && address == REGISTER_HDMA3) {
-        return gameboy->hdma.destination_address >> 8;
+        return gameboy->hdma.destination_offset >> 8;
     }
 
     if (gameboy->gbc && address == REGISTER_HDMA4) {
-        return gameboy->hdma.destination_address & 0xFF;
+        return gameboy->hdma.destination_offset & 0xFF;
     }
 
     if (gameboy->gbc && address == REGISTER_HDMA5) {
@@ -376,8 +365,8 @@ uint8_t read_bus(struct emulator *gameboy, uint16_t address) {
     if (gameboy->gbc && address == REGISTER_BCPS) {
         uint8_t r = 0;
 
-        r |= gameboy->ppu.bg_palettes.auto_increment << 7;
-        r |= gameboy->ppu.bg_palettes.write_index;
+        r |= gameboy->ppu.background_palettes.auto_increment << 7;
+        r |= gameboy->ppu.background_palettes.write_index;
 
         return r;
     }
@@ -412,7 +401,7 @@ uint8_t read_bus(struct emulator *gameboy, uint16_t address) {
         unsigned palette = index >> 3;
         unsigned colour_index = (index >> 1) & 3;
         bool high = index & 1;
-        uint16_t colour = p->colors[palette][colour_index];
+        uint16_t colour = p->colours[palette][colour_index];
 
         if (high) {
             return colour >> 8;
@@ -438,31 +427,31 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     }
 
     if (address >= ZERO_PAGE_RAM_BASE && address < ZERO_PAGE_RAM_END) {
-        gameboy->zram[address - ZERO_PAGE_RAM_BASE] = value;
+        gameboy->zero_page_ram[address - ZERO_PAGE_RAM_BASE] = value;
         return;
     }
 
     if (address >= INTERNAL_RAM_BASE && address < INTERNAL_RAM_END) {
         uint16_t offset = get_internal_ram_offset(gameboy, address - INTERNAL_RAM_BASE);
 
-        gameboy->iram[offset] = value;
+        gameboy->internal_ram[offset] = value;
         return;
     }
 
     if (address >= INTERNAL_RAM_ECHO_BASE && address < INTERNAL_RAM_ECHO_END) {
         uint16_t offset = get_internal_ram_offset(gameboy, address - INTERNAL_RAM_ECHO_BASE);
 
-        gameboy->iram[offset] = value;
+        gameboy->internal_ram[offset] = value;
         return;
     }
 
     if (address >= VIDEO_RAM_BASE && address < VIDEO_RAM_END) {
         uint16_t offset = address - VIDEO_RAM_BASE;
 
-        offset += 0x2000 * gameboy->vram_high_bank;
+        offset += 0x2000 * gameboy->video_ram_high_bank;
 
         sync_ppu(gameboy);
-        gameboy->vram[offset] = value;
+        gameboy->video_ram[offset] = value;
         return;
     }
 
@@ -522,7 +511,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     }
 
     if (address == REGISTER_IE) {
-        gameboy->irq.irq_enable = value;
+        gameboy->interrupt_request.interrupt_request_enable = value;
         return;
     }
 
@@ -545,7 +534,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
 
     if (address == REGISTER_NR12) {
         if (gameboy->spu.enable) {
-            gameboy->spu.nr1.envelope_config = value; // envelope configuration takes effect on sound start
+            gameboy->spu.nr1.envelope_configuration = value; // envelope configuration takes effect on sound start
         }
         return;
     }
@@ -585,7 +574,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
 
     if (address == REGISTER_NR22) {
         if (gameboy->spu.enable) {
-            gameboy->spu.nr2.envelope_config = value; // envelope configuration takes effect on sound start
+            gameboy->spu.nr2.envelope_configuration = value; // envelope configuration takes effect on sound start
         }
         return;
     }
@@ -678,7 +667,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
 
     if (address == REGISTER_NR42) {
         if (gameboy->spu.enable) {
-            gameboy->spu.nr4.envelope_config = value; // envelope configuration takes effect on sound start
+            gameboy->spu.nr4.envelope_configuration = value; // envelope configuration takes effect on sound start
         }
         return;
     }
@@ -805,12 +794,6 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
         return;
     }
 
-    // TODO: remove this
-    if (gameboy->gbc && address == REGISTER_KEY1) {
-        // gameboy->speed_switch_pending = value & 1;
-        return;
-    }
-
     if (gameboy->gbc && address == REGISTER_VBK) {
         gameboy->video_ram_high_bank = value & 1;
         return;
@@ -857,8 +840,8 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     }
 
     if (gameboy->gbc && address == REGISTER_BCPS) {
-        gameboy->ppu.bg_palettes.auto_increment = value & 0x80;
-        gameboy->ppu.bg_palettes.write_index = value & 0x3f;
+        gameboy->ppu.background_palettes.auto_increment = value & 0x80;
+        gameboy->ppu.background_palettes.write_index = value & 0x3f;
         return;
     }
 
@@ -868,7 +851,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
         unsigned palette = index >> 3;
         unsigned colour_index = (index >> 1) & 3;
         bool high = index & 1;
-        uint16_t colour = p->colors[palette][colour_index];
+        uint16_t colour = p->colours[palette][colour_index];
 
         if (high) {
             colour &= 0xFF;
@@ -878,7 +861,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
             colour |= value;
         }
 
-        p->colors[palette][colour_index] = colour;
+        p->colours[palette][colour_index] = colour;
 
         if (p->auto_increment) {
             p->write_index = (p->write_index + 1) & 0x3F;
@@ -899,7 +882,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
         unsigned palette = index >> 3;
         unsigned colour_index = (index >> 1) & 3;
         bool high = index & 1;
-        uint16_t colour = p->colors[palette][colour_index];
+        uint16_t colour = p->colours[palette][colour_index];
 
         if (high) {
             colour &= 0xFF;
@@ -909,7 +892,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
             colour |= value;
         }
 
-        p->colors[palette][colour_index] = colour;
+        p->colours[palette][colour_index] = colour;
 
         if (p->auto_increment) {
             p->write_index = (p->write_index + 1) & 0x3F;
