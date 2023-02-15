@@ -10,7 +10,7 @@
 #define GB_SYNC_NEVER 10000000 // sync at low frequency if there is no event planned
 
 enum sync_token {
-     GB_SYNC_GPU,
+     GB_SYNC_PPU,
      GB_SYNC_DMA,
      GB_SYNC_TIMER,
      GB_SYNC_CART,

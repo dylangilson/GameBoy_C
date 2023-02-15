@@ -13,6 +13,8 @@
 #include <stdio.h>
 // #include <semaphore.h>
 
+// TODO: paused on line 185 of ppu.c
+
 struct emulator;
 
 #include "sync.h"
