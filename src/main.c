@@ -16,7 +16,6 @@
 int main(int argc, char *argv[]) {
     struct emulator *gameboy;
     const char *rom_file;
-    unsigned i;
 
     if (argc < 2) {
         fprintf(stderr, "Not enough command line arguments provided!\n", argv[0]);
@@ -30,7 +29,7 @@ int main(int argc, char *argv[]) {
     }
 
     // initialize semaphores before we start the UI
-    for (i = 0; i < GB_SPU_SAMPLE_BUFFER_COUNT; i++) {
+    for (unsigned i = 0; i < GB_SPU_SAMPLE_BUFFER_COUNT; i++) {
         struct spu_sample_buffer *buffer = &gameboy->spu.buffers[i];
 
         memset(buffer->samples, 0, sizeof(buffer->samples));

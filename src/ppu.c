@@ -259,7 +259,7 @@ static void get_ppu_line_sprites(struct emulator *gameboy, unsigned ly, struct s
 
     // iterate over the OAM and store the sprites that are in the current line
     n_sprites = 0;
-    for (i = 0; i < GB_MAX_SPRITES; i++) {
+    for (i = 0; i < GB_PPU_MAX_SPRITES; i++) {
         struct sprite s = get_oam_sprite(gameboy, i);
 
         if ((int)ly < s.y || (int)ly >= (s.y + (int)sprite_height)) {
@@ -374,7 +374,6 @@ static void ppu_draw_current_line(struct emulator *gameboy) {
     for (x = 0; x < GB_LCD_WIDTH; x++) {
         struct ppu_pixel pixel;
         struct sprite s;
-        unsigned i;
 
         pixel.colour.dmg = WHITE;
         pixel.opaque = false;
@@ -388,7 +387,7 @@ static void ppu_draw_current_line(struct emulator *gameboy) {
 
         if (!pixel.priority || !pixel.opaque) {
             if (gameboy->gbc) {
-                for (i = 0; line_sprites[i].x < GB_LCD_WIDTH * 2; i++) {
+                for (unsigned i = 0; line_sprites[i].x < GB_LCD_WIDTH * 2; i++) {
                     s = line_sprites[i];
 
                     if ((int)x < s.x || (int)x >= s.x + 8) {
@@ -409,7 +408,7 @@ static void ppu_draw_current_line(struct emulator *gameboy) {
                 }
 
                 // iterate on all sprites at this position until we find one that's visible or exhaust the list
-                for (i = next_sprite; line_sprites[i].x <= (int)x; i++) {
+                for (unsigned i = next_sprite; line_sprites[i].x <= (int)x; i++) {
                     s = line_sprites[i];
 
                     if (get_ppu_sprite_colour(gameboy, &s, x, ppu->ly, &pixel)) {
@@ -572,13 +571,12 @@ void set_lcdc(struct emulator *gameboy, uint8_t lcdc) {
 
         if (master_enable == false) {
             union lcd_colour line[GB_LCD_WIDTH];
-            unsigned i;
 
-            for (i = 0; i < GB_LCD_WIDTH; i++) {
+            for (unsigned i = 0; i < GB_LCD_WIDTH; i++) {
                 line[i].dmg = WHITE;
             }
 
-            for (i = 0; i < GB_LCD_HEIGHT; i++) {
+            for (unsigned i = 0; i < GB_LCD_HEIGHT; i++) {
                 gameboy->ui.draw_line_dmg(gameboy, i, line);
             }
 

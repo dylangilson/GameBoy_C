@@ -23,6 +23,6 @@ struct gameboy_interrupt_request {
 } gameboy_interrupt_request;
 
 void reset_interrupt_request(struct emulator *gameboy);
-void trigger_interrupt_request(struct emulator *gameboy, enum interrupt_request_token value);
+void trigger_interrupt_request(struct emulator *gameboy, enum interrupt_request_token token);
 
 #endif

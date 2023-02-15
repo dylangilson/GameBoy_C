@@ -9,7 +9,7 @@
 #ifndef PPU_H
 #define PPU_H
 
-#define GB_MAX_SPRITES 40 // PPU supports a maximum of 40 sprites at once
+#define GB_PPU_MAX_SPRITES 40 // PPU supports a maximum of 40 sprites at once
 #define GB_LCD_WIDTH 160
 #define GB_LCD_HEIGHT 144
 
@@ -56,7 +56,7 @@ struct gameboy_ppu {
     uint8_t window_y;
     uint8_t window_line; // NEW
     uint16_t line_position; // current position within line
-    uint8_t oam[GB_MAX_SPRITES * 4]; // Object Attribute Memory (sprite configuration) ; each sprite uses 4 bytes
+    uint8_t oam[GB_PPU_MAX_SPRITES * 4]; // Object Attribute Memory (sprite configuration) ; each sprite uses 4 bytes
     struct colour_palette background_palettes; // GBC only
     struct colour_palette sprite_palettes; // GBC only
 } gameboy_ppu;
