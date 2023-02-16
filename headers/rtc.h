@@ -19,7 +19,7 @@ struct gameboy_rtc_date {
 
 struct gameboy_rtc {
     uint64_t base; // system time corresponding to 00:00:00 day 0 in the emulated RTC time
-    uint64_t halt_time; // if halted is true, then this value contains the date and time of the halt
+    uint64_t halt_date; // if halted is true, then this value contains the date and time of the halt
     bool latch; // date is latched when this switches from 0 to 1
     struct gameboy_rtc_date latched_date;
 } gameboy_rtc;

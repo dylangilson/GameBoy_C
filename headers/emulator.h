@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
-// #include <semaphore.h>
+#include <semaphore.h>
 
 struct emulator;
 

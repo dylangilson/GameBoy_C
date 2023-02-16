@@ -10,7 +10,7 @@
 #define SPU_H
 
 #define GB_SPU_SAMPLE_RATE_DIVISOR 64 // sample SPU once every 64 CPU cycles
-#define GB_SPU_SAMPLE_RATE_HZ (GB_CPU_FREQ_HZ / GB_SPU_SAMPLE_RATE_DIVISOR) // SPU sample rate
+#define GB_SPU_SAMPLE_RATE_HZ (CPU_FREQUENCY_HZ / GB_SPU_SAMPLE_RATE_DIVISOR) // SPU sample rate
 #define GB_SPU_SAMPLE_BUFFER_LENGTH 2048 // each sample contains 2048 frames ; each with two samples for left and right stereo channels
 #define GB_SPU_SAMPLE_BUFFER_COUNT 2 // number of entries in sample buffer
 #define GB_NR3_RAM_SIZE 16 // Sound 3 RAM size in bytes
