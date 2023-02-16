@@ -414,7 +414,7 @@ uint8_t read_bus(struct emulator *gameboy, uint16_t address) {
         return gameboy->internal_ram_high_bank | 0xF8;
     }
 
-    printf("Unsupported bus read at address 0x%04x\n", address);
+    // printf("Unsupported bus read at address 0x%04x\n", address);
 
     return 0xFF;
 }
@@ -526,8 +526,10 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR11) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr1.wave.duty_cycle = value >> 6;
-            gameboy_spu_duration_reload(&gameboy->spu.nr1.duration, GB_SPU_NR1_T1_MAX, value & 0x3F);
+
+            reload_spu_duration(&gameboy->spu.nr1.duration, GB_SPU_NR1_T1_MAX, value & 0x3F);
         }
         return;
     }
@@ -542,6 +544,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR13) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr1.sweep.divider.offset &= 0x700;
             gameboy->spu.nr1.sweep.divider.offset |= value;
         }
@@ -551,6 +554,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR14) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr1.sweep.divider.offset &= 0xFF;
             gameboy->spu.nr1.sweep.divider.offset |= ((uint16_t)value & 7) << 8;
 
@@ -566,7 +570,9 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR21) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr2.wave.duty_cycle = value >> 6;
+
             reload_spu_duration(&gameboy->spu.nr2.duration, GB_SPU_NR2_T1_MAX, value & 0x3F);
         }
         return;
@@ -582,6 +588,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR23) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr2.divider.offset &= 0x700;
             gameboy->spu.nr2.divider.offset |= value;
         }
@@ -591,9 +598,9 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR24) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr2.divider.offset &= 0xFF;
             gameboy->spu.nr2.divider.offset |= ((uint16_t)value & 7) << 8;
-
             gameboy->spu.nr2.duration.enable = value & 0x40;
 
             if (value & 0x80) {
@@ -608,7 +615,9 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
             bool enable = (value & 0x80); // enabling doesn't start Sound 3 until 0x80 is written to NR34
 
             sync_spu(gameboy);
+
             gameboy->spu.nr3.enable = enable;
+
             if (!enable) {
                 gameboy->spu.nr3.running = false;
             }
@@ -619,7 +628,9 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR31) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr3.t1 = value;
+
             reload_spu_duration(&gameboy->spu.nr3.duration, GB_SPU_NR3_T1_MAX, value);
         }
         return;
@@ -628,6 +639,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR32) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr3.volume_shift = (value >> 5) & 3;
         }
         return;
@@ -636,6 +648,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR33) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr3.divider.offset &= 0x700;
             gameboy->spu.nr3.divider.offset |= value;
         }
@@ -645,9 +658,9 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR34) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr3.divider.offset &= 0xFF;
             gameboy->spu.nr3.divider.offset |= ((uint16_t)value & 7) << 8;
-
             gameboy->spu.nr3.duration.enable = value & 0x40;
 
             if (value & 0x80) {
@@ -683,6 +696,7 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR44) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.nr4.duration.enable = value & 0x40;
 
             if (value & 0x80) {
@@ -695,7 +709,9 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR50) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.output_level = value;
+
             update_spu_sound_amp(gameboy);
         }
         return;
@@ -704,7 +720,9 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
     if (address == REGISTER_NR51) {
         if (gameboy->spu.enable) {
             sync_spu(gameboy);
+
             gameboy->spu.sound_mux = value;
+            
             update_spu_sound_amp(gameboy);
         }
         return;
@@ -906,5 +924,5 @@ void write_bus(struct emulator *gameboy, uint16_t address, uint8_t value) {
         return;
     }
 
-    printf("Unsupported bus write at address 0x%04x [value=0x%02x]\n", address, value);
+    // printf("Unsupported bus write at address 0x%04x [value=0x%02x]\n", address, value);
 }

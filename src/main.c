@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     const char *rom_file;
 
     if (argc < 2) {
-        fprintf(stderr, "Not enough command line arguments provided!\n", argv[0]);
+        fprintf(stderr, "Not enough command line arguments provided!\n");
         return EXIT_FAILURE;
     }
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     gameboy->quit = false;
 
     while (!gameboy->quit) {
-        gameboy->ui.refresh_input(gameboy);
+        gameboy->ui.refresh_gamepad(gameboy);
 
         run_cpu_cycles(gameboy, CPU_FREQUENCY_HZ / 120); // refresh at 120Hz to maintain performance
     }

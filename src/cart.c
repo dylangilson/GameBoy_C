@@ -4,7 +4,9 @@
  * Feburary 13, 2023
  */
 
+#include <ctype.h>
 #include <errno.h>
+#include <string.h>
 
 #include "emulator.h"
 
@@ -263,7 +265,7 @@ void load_cart(struct emulator *gameboy, const char *rom_path) {
 
     if (has_battery_backup) {
         const size_t path_len = strlen(rom_path);
-        FILE *file;
+        FILE *file = NULL;
         size_t pos;
 
         cart->save_file = malloc(path_len + strlen(".sav"));
@@ -300,7 +302,7 @@ void load_cart(struct emulator *gameboy, const char *rom_path) {
             }
 
             if (cart->has_rtc) {
-                gameboy_rtc_load(gameboy, file);
+                load_rtc(gameboy, file);
             }
 
             fclose(file);
@@ -308,7 +310,7 @@ void load_cart(struct emulator *gameboy, const char *rom_path) {
         } else {
             // no active save file
             if (cart->has_rtc) {
-                gameboy_rtc_init(gameboy);
+                init_rtc(gameboy);
             }
         }
 
@@ -318,7 +320,7 @@ void load_cart(struct emulator *gameboy, const char *rom_path) {
     
     gameboy->gbc = (cart->rom[GB_CART_OFF_GBC] & 0x80); // check if we have a DMG or GBC game
 
-    gameboy_cart_get_rom_title(gameboy, rom_title);
+    get_cart_rom_title(gameboy, rom_title);
 
     printf("Succesfully Loaded %s\n", rom_path);
     printf("Title: '%s'\n", rom_title);
@@ -485,7 +487,7 @@ void write_cart_rom(struct emulator *gameboy, uint16_t address, uint8_t value) {
                 cart->current_ram_bank = value;
             } else if (address < 0x8000) {
                 if (cart->has_rtc) {
-                    gameboy_rtc_latch(gameboy, value == 1);
+                    latch_rtc(gameboy, value == 1);
                 }
             }
 
@@ -566,7 +568,7 @@ uint8_t read_cart_ram(struct emulator *gameboy, uint16_t address) {
             } else {
                 // RTC access ; only accessible when the RAM is not write-protected (even for reads)
                 if (cart->has_rtc && !cart->ram_write_protected) {
-                    return gameboy_rtc_read(gameboy, cart->current_ram_bank);
+                    return read_rtc(gameboy, cart->current_ram_bank);
                 } else {
                     return 0xFF;
                 }
@@ -589,7 +591,7 @@ uint8_t read_cart_ram(struct emulator *gameboy, uint16_t address) {
 
 void write_cart_ram(struct emulator *gameboy, uint16_t address, uint8_t value) {
     struct gameboy_cart *cart = &gameboy->cart;
-    unsigned ram_offset;
+    unsigned ram_offset = 0;
 
     if (cart->ram_write_protected) {
         return;
@@ -607,7 +609,7 @@ void write_cart_ram(struct emulator *gameboy, uint16_t address, uint8_t value) {
             break;
         case GB_CART_MBC2:
             ram_offset = address % 512;
-            value |= 0xf0; // MBC2 only has 4 bits per address, so the high nibble is unusable
+            value |= 0xF0; // MBC2 only has 4 bits per address, so the high nibble is unusable
             break;
         case GB_CART_MBC3:
             if (cart->current_ram_bank <= 3) {

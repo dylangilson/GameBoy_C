@@ -304,7 +304,7 @@ static bool get_ppu_sprite_colour(struct emulator *gameboy, const struct sprite 
     unsigned sprite_y;
     unsigned sprite_flip_height;
     uint8_t tile_index;
-    enum gb_colour colour;
+    enum dmg_colour colour;
 
     if (sprite->background && p->opaque) {
         return false; // sprite is behind an opaque background pixel ; return background colour

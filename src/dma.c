@@ -29,7 +29,7 @@ void sync_dma(struct emulator *gameboy) {
     length = elapsed / 4;
 
     while (length && dma->position < GB_DMA_LENGTH_BYTES) {
-        uint32_t b = gb_memory_readb(gameboy, dma->source_address + dma->position);
+        uint32_t b = read_bus(gameboy, dma->source_address + dma->position);
 
         gameboy->ppu.oam[dma->position] = b;
 

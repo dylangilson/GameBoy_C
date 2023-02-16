@@ -113,13 +113,13 @@ static void cpu_pushb(struct emulator *gameboy, uint8_t b) {
 
     cpu->stack_pointer = (cpu->stack_pointer - 1) & 0xFFFF;
 
-    cpu_writeb(gameboy, cpu->stack_pointer, b);
+    write_cpu(gameboy, cpu->stack_pointer, b);
 }
 
 static uint8_t cpu_popb(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    uint8_t b = cpu_readb(gameboy, cpu->stack_pointer);
+    uint8_t b = read_cpu(gameboy, cpu->stack_pointer);
 
     cpu->stack_pointer = (cpu->stack_pointer + 1) & 0xFFFF;
 
@@ -141,7 +141,7 @@ static uint16_t cpu_popw(struct emulator *gameboy) {
 static uint8_t get_cpu_next_i8(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    uint8_t i8 = cpu_readb(gameboy, cpu->program_counter);
+    uint8_t i8 = read_cpu(gameboy, cpu->program_counter);
 
     cpu->program_counter = (cpu->program_counter + 1) & 0xFFFF;
 
@@ -155,7 +155,7 @@ static uint16_t get_cpu_next_i16(struct emulator *gameboy) {
     return b0 | (b1 << 8);
 }
 
-typedef void (*gameboy_instruction)(struct gameboy *);
+typedef void (*gameboy_instruction)(struct emulator *);
 
 static void process_nop(struct emulator *gameboy) {
     // NOP
@@ -164,7 +164,7 @@ static void process_nop(struct emulator *gameboy) {
 static void process_undefined(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
     uint16_t instruction_pc = (cpu->program_counter - 1) & 0xFFFF;
-    uint8_t instruction = gameboy_memory_readb(gameboy, instruction_pc);
+    uint8_t instruction = read_bus(gameboy, instruction_pc);
 
     // Undefined opcode ; freezes the CPU on real hardware
     fprintf(stderr, "Undefined instruction instruction 0x%02x at 0x%04x\n", instruction, instruction_pc);
@@ -256,12 +256,12 @@ static void process_inc_l(struct emulator *gameboy) {
 }
 
 static void process_inc_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     value = cpu_inc(gameboy, value);
 
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_dec_a(struct emulator *gameboy) {
@@ -293,12 +293,12 @@ static void process_dec_l(struct emulator *gameboy) {
 }
 
 static void process_dec_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     value = cpu_dec(gameboy, value);
 
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 // add two 16 bit values ; update the CPU flags
@@ -379,8 +379,8 @@ static void process_sub_a_l(struct emulator *gameboy) {
 
 static void process_sub_a_mhl(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu->a = cpu_sub_set_flags(gameboy, cpu->a, value);
 }
@@ -454,8 +454,8 @@ static void process_sbc_a_l(struct emulator *gameboy) {
 
 static void process_sbc_a_mhl(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu->a = cpu_sbc_set_flags(gameboy, cpu->a, value);
 }
@@ -527,8 +527,8 @@ static void process_add_a_l(struct emulator *gameboy) {
 
 static void process_add_a_mhl(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu->a = cpu_add_set_flags(gameboy, cpu->a, value);
 }
@@ -602,8 +602,8 @@ static void process_adc_a_l(struct emulator *gameboy) {
 
 static void process_adc_a_mhl(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu->a = cpu_adc_set_flags(gameboy, cpu->a, value);
 }
@@ -640,8 +640,8 @@ static void process_add_sp_si8(struct emulator *gameboy) {
 }
 
 static void process_add_hl_bc(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint16_t bc = cpu_bc(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint16_t bc = get_cpu_bc(gameboy);
 
     hl = cpu_addw_set_flags(gameboy, hl, bc);
 
@@ -649,8 +649,8 @@ static void process_add_hl_bc(struct emulator *gameboy) {
 }
 
 static void process_add_hl_de(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint16_t de = cpu_de(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint16_t de = get_cpu_de(gameboy);
 
     hl = cpu_addw_set_flags(gameboy, hl, de);
 
@@ -658,7 +658,7 @@ static void process_add_hl_de(struct emulator *gameboy) {
 }
 
 static void process_add_hl_hl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
     hl = cpu_addw_set_flags(gameboy, hl, hl);
 
@@ -666,7 +666,7 @@ static void process_add_hl_hl(struct emulator *gameboy) {
 }
 
 static void process_add_hl_sp(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
     hl = cpu_addw_set_flags(gameboy, hl, gameboy->cpu.stack_pointer);
 
@@ -683,7 +683,7 @@ static void process_inc_sp(struct emulator *gameboy) {
 }
 
 static void process_inc_bc(struct emulator *gameboy) {
-    uint16_t bc = cpu_bc(gameboy);
+    uint16_t bc = get_cpu_bc(gameboy);
 
     bc = (bc + 1) & 0xFFFF;
 
@@ -692,7 +692,7 @@ static void process_inc_bc(struct emulator *gameboy) {
 }
 
 static void process_inc_de(struct emulator *gameboy) {
-    uint16_t de = cpu_de(gameboy);
+    uint16_t de = get_cpu_de(gameboy);
 
     de = (de + 1) & 0xFFFF;
 
@@ -701,7 +701,7 @@ static void process_inc_de(struct emulator *gameboy) {
 }
 
 static void process_inc_hl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
     hl = (hl + 1) & 0xFFFF;
 
@@ -719,7 +719,7 @@ static void process_dec_sp(struct emulator *gameboy) {
 }
 
 static void process_dec_bc(struct emulator *gameboy) {
-    uint16_t bc = cpu_bc(gameboy);
+    uint16_t bc = get_cpu_bc(gameboy);
 
     bc = (bc - 1) & 0xFFFF;
 
@@ -728,7 +728,7 @@ static void process_dec_bc(struct emulator *gameboy) {
 }
 
 static void process_dec_de(struct emulator *gameboy) {
-    uint16_t de = cpu_de(gameboy);
+    uint16_t de = get_cpu_de(gameboy);
 
     de = (de - 1) & 0xFFFF;
 
@@ -737,7 +737,7 @@ static void process_dec_de(struct emulator *gameboy) {
 }
 
 static void process_dec_hl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
     hl = (hl - 1) & 0xFFFF;
 
@@ -789,8 +789,8 @@ static void process_cp_a_l(struct emulator *gameboy) {
 
 static void process_cp_a_mhl(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_sub_set_flags(gameboy, cpu->a, value);
 }
@@ -859,8 +859,8 @@ static void process_and_a_l(struct emulator *gameboy) {
 
 static void process_and_a_mhl(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu->a = cpu_and_set_flags(gameboy, cpu->a, value);
 }
@@ -929,8 +929,8 @@ static void process_xor_a_l(struct emulator *gameboy) {
 
 static void process_xor_a_mhl(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu->a = cpu_xor_set_flags(gameboy, cpu->a, value);
 }
@@ -999,8 +999,8 @@ static void process_or_a_l(struct emulator *gameboy) {
 
 static void process_or_a_mhl(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu->a = cpu_or_set_flags(gameboy, cpu->a, value);
 }
@@ -1167,57 +1167,57 @@ static void process_ld_l_i8(struct emulator *gameboy) {
 
 static void process_ld_mhl_i8(struct emulator *gameboy) {
     uint8_t i8 = get_cpu_next_i8(gameboy);
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
-    cpu_writeb(gameboy, hl, i8);
+    write_cpu(gameboy, hl, i8);
 }
 
 static void process_ld_mi16_a(struct emulator *gameboy) {
     uint16_t i16 = get_cpu_next_i16(gameboy);
 
-    cpu_writeb(gameboy, i16, gameboy->cpu.a);
+    write_cpu(gameboy, i16, gameboy->cpu.a);
 }
 
 static void process_ld_mi16_sp(struct emulator *gameboy) {
     uint16_t i16 = get_cpu_next_i16(gameboy);
     uint16_t stack_pointer = gameboy->cpu.stack_pointer;
 
-    cpu_writeb(gameboy, i16, stack_pointer & 0xFF);
-    cpu_writeb(gameboy, i16 + 1, stack_pointer >> 8);
+    write_cpu(gameboy, i16, stack_pointer & 0xFF);
+    write_cpu(gameboy, i16 + 1, stack_pointer >> 8);
 }
 
 static void process_ld_a_mi16(struct emulator *gameboy) {
     uint16_t i16 = get_cpu_next_i16(gameboy);
 
-    gameboy->cpu.a = cpu_readb(gameboy, i16);
+    gameboy->cpu.a = read_cpu(gameboy, i16);
 }
 
 static void process_ldh_mi8_a(struct emulator *gameboy) {
     uint8_t i8 = get_cpu_next_i8(gameboy);
     uint16_t address = 0xFF00 | i8;
 
-    cpu_writeb(gameboy, address, gameboy->cpu.a);
+    write_cpu(gameboy, address, gameboy->cpu.a);
 }
 
 static void process_ldh_a_mi8(struct emulator *gameboy) {
     uint8_t i8 = get_cpu_next_i8(gameboy);
     uint16_t address = 0xFF00 | i8;
 
-    gameboy->cpu.a = cpu_readb(gameboy, address);
+    gameboy->cpu.a = read_cpu(gameboy, address);
 }
 
 static void process_ldh_mc_a(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
     uint16_t address = 0xFF00 | cpu->c;
 
-    cpu_writeb(gameboy, address, cpu->a);
+    write_cpu(gameboy, address, cpu->a);
 }
 
 static void process_ldh_a_mc(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
     uint16_t address = 0xFF00 | cpu->c;
 
-    cpu->a = cpu_readb(gameboy, address);
+    cpu->a = read_cpu(gameboy, address);
 }
 
 static void process_ld_bc_i16(struct emulator *gameboy) {
@@ -1239,7 +1239,7 @@ static void process_ld_sp_i16(struct emulator *gameboy) {
 }
 
 static void process_ld_sp_hl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
     gameboy->cpu.stack_pointer = hl;
 
@@ -1253,73 +1253,73 @@ static void process_ld_hl_i16(struct emulator *gameboy) {
 }
 
 static void process_ld_mbc_a(struct emulator *gameboy) {
-    uint16_t bc = cpu_bc(gameboy);
+    uint16_t bc = get_cpu_bc(gameboy);
     uint16_t a = gameboy->cpu.a;
 
-    cpu_writeb(gameboy, bc, a);
+    write_cpu(gameboy, bc, a);
 }
 
 static void process_ld_mde_a(struct emulator *gameboy) {
-    uint16_t de = cpu_de(gameboy);
+    uint16_t de = get_cpu_de(gameboy);
     uint16_t a = gameboy->cpu.a;
 
-    cpu_writeb(gameboy, de, a);
+    write_cpu(gameboy, de, a);
 }
 
 static void process_ld_mhl_a(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
     uint16_t a = gameboy->cpu.a;
 
-    cpu_writeb(gameboy, hl, a);
+    write_cpu(gameboy, hl, a);
 }
 
 static void process_ld_mhl_b(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
     uint16_t b = gameboy->cpu.b;
 
-    cpu_writeb(gameboy, hl, b);
+    write_cpu(gameboy, hl, b);
 }
 
 static void process_ld_mhl_c(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
     uint16_t c = gameboy->cpu.c;
 
-    cpu_writeb(gameboy, hl, c);
+    write_cpu(gameboy, hl, c);
 }
 
 static void process_ld_mhl_d(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
     uint16_t d = gameboy->cpu.d;
 
-    cpu_writeb(gameboy, hl, d);
+    write_cpu(gameboy, hl, d);
 }
 
 static void process_ld_mhl_e(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
     uint16_t e = gameboy->cpu.e;
 
-    cpu_writeb(gameboy, hl, e);
+    write_cpu(gameboy, hl, e);
 }
 
 static void process_ld_mhl_h(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
     uint16_t h = gameboy->cpu.h;
 
-    cpu_writeb(gameboy, hl, h);
+    write_cpu(gameboy, hl, h);
 }
 
 static void process_ld_mhl_l(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
     uint16_t l = gameboy->cpu.l;
 
-    cpu_writeb(gameboy, hl, l);
+    write_cpu(gameboy, hl, l);
 }
 
 static void process_ldi_mhl_a(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
     uint16_t a = gameboy->cpu.a;
 
-    cpu_writeb(gameboy, hl, a);
+    write_cpu(gameboy, hl, a);
 
     hl = (hl + 1) & 0xFFFF;
 
@@ -1327,10 +1327,10 @@ static void process_ldi_mhl_a(struct emulator *gameboy) {
 }
 
 static void process_ldd_mhl_a(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
     uint16_t a = gameboy->cpu.a;
 
-    cpu_writeb(gameboy, hl, a);
+    write_cpu(gameboy, hl, a);
 
     hl = (hl - 1) & 0xFFFF;
 
@@ -1338,16 +1338,16 @@ static void process_ldd_mhl_a(struct emulator *gameboy) {
 }
 
 static void process_ld_a_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     gameboy->cpu.a = value;
 }
 
 static void process_ldi_a_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
-    gameboy->cpu.a = cpu_readb(gameboy, hl);
+    gameboy->cpu.a = read_cpu(gameboy, hl);
 
     hl = (hl + 1) & 0xFFFF;
 
@@ -1355,9 +1355,9 @@ static void process_ldi_a_mhl(struct emulator *gameboy) {
 }
 
 static void process_ldd_a_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
-    gameboy->cpu.a = cpu_readb(gameboy, hl);
+    gameboy->cpu.a = read_cpu(gameboy, hl);
 
     hl = (hl - 1) & 0xFFFF;
 
@@ -1365,57 +1365,57 @@ static void process_ldd_a_mhl(struct emulator *gameboy) {
 }
 
 static void process_ld_a_mbc(struct emulator *gameboy) {
-    uint16_t bc = cpu_bc(gameboy);
-    uint8_t value = cpu_readb(gameboy, bc);
+    uint16_t bc = get_cpu_bc(gameboy);
+    uint8_t value = read_cpu(gameboy, bc);
 
     gameboy->cpu.a = value;
 }
 
 static void process_ld_a_mde(struct emulator *gameboy) {
-    uint16_t de = cpu_de(gameboy);
-    uint8_t value = cpu_readb(gameboy, de);
+    uint16_t de = get_cpu_de(gameboy);
+    uint8_t value = read_cpu(gameboy, de);
 
     gameboy->cpu.a = value;
 }
 
 static void process_ld_b_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     gameboy->cpu.b = value;
 }
 
 static void process_ld_c_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     gameboy->cpu.c = value;
 }
 
 static void process_ld_d_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     gameboy->cpu.d = value;
 }
 
 static void process_ld_e_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     gameboy->cpu.e = value;
 }
 
 static void process_ld_h_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     gameboy->cpu.h = value;
 }
 
 static void process_ld_l_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     gameboy->cpu.l = value;
 }
@@ -1429,7 +1429,7 @@ static void process_ld_hl_sp_si8(struct emulator *gameboy) {
 }
 
 static void process_push_bc(struct emulator *gameboy) {
-    uint16_t bc = cpu_bc(gameboy);
+    uint16_t bc = get_cpu_bc(gameboy);
 
     cpu_pushw(gameboy, bc);
 
@@ -1437,7 +1437,7 @@ static void process_push_bc(struct emulator *gameboy) {
 }
 
 static void process_push_de(struct emulator *gameboy) {
-    uint16_t de = cpu_de(gameboy);
+    uint16_t de = get_cpu_de(gameboy);
 
     cpu_pushw(gameboy, de);
 
@@ -1445,7 +1445,7 @@ static void process_push_de(struct emulator *gameboy) {
 }
 
 static void process_push_hl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
     cpu_pushw(gameboy, hl);
 
@@ -1710,7 +1710,7 @@ static void process_jp_c_i16(struct emulator *gameboy) {
 }
 
 static void process_jp_hl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
+    uint16_t hl = get_cpu_hl(gameboy);
 
     gameboy->cpu.program_counter = hl;
 }
@@ -1745,7 +1745,7 @@ static void process_jr_nz_si8(struct emulator *gameboy) {
     if (!gameboy->cpu.zero_flag) {
         process_jr_si8(gameboy);
     } else {
-        geT_cpu_next_i8(gameboy); // discard immediate value
+        get_cpu_next_i8(gameboy); // discard immediate value
     }
 }
 
@@ -2233,7 +2233,7 @@ static void run_cpu_instruction(struct emulator *gameboy) {
 int32_t run_cpu_cycles(struct emulator *gameboy, int32_t cycles) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    gameboy_sync_rebase(gameboy); 
+    rebase_sync(gameboy); 
 
     while (gameboy->timestamp < cycles) {
         check_cpu_interrupts(gameboy); // check for interrupt as it may exit system from halted mode
@@ -2250,7 +2250,7 @@ int32_t run_cpu_cycles(struct emulator *gameboy, int32_t cycles) {
             }
 
             cpu_clock_tick(gameboy, skip_cycles);
-            gameboy_sync_check_events(gameboy); // check if any event needs to run ; this may trigger an interrupt request which will un-halt the CPU in the next iteration
+            check_sync_events(gameboy); // check if any event needs to run ; this may trigger an interrupt request which will un-halt the CPU in the next iteration
         } else {
             run_cpu_instruction(gameboy);
         }
@@ -2314,11 +2314,11 @@ static void process_rlc_l(struct emulator *gameboy) {
 }
 
 static void process_rlc_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_rlc_set_flags(gameboy, &value);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void cpu_rrc_set_flags(struct emulator *gameboy, uint8_t *value) {
@@ -2376,11 +2376,11 @@ static void process_rrc_l(struct emulator *gameboy) {
 }
 
 static void process_rrc_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_rrc_set_flags(gameboy, &value);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void cpu_rl_set_flags(struct emulator *gameboy, uint8_t *value) {
@@ -2438,11 +2438,11 @@ static void process_rl_l(struct emulator *gameboy) {
 }
 
 static void process_rl_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_rl_set_flags(gameboy, &value);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void cpu_rr_set_flags(struct emulator *gameboy, uint8_t *value) {
@@ -2501,11 +2501,11 @@ static void process_rr_l(struct emulator *gameboy) {
 }
 
 static void process_rr_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_rr_set_flags(gameboy, &value);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void cpu_sla_set_flags(struct emulator *gameboy, uint8_t *value) {
@@ -2563,11 +2563,11 @@ static void process_sla_l(struct emulator *gameboy) {
 }
 
 static void process_sla_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_sla_set_flags(gameboy, &value);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void cpu_sra_set_flags(struct emulator *gameboy, uint8_t *value) {
@@ -2625,11 +2625,11 @@ static void process_sra_l(struct emulator *gameboy) {
 }
 
 static void process_sra_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_sra_set_flags(gameboy, &value);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void cpu_swap_set_flags(struct emulator *gameboy, uint8_t *value) {
@@ -2686,11 +2686,11 @@ static void process_swap_l(struct emulator *gameboy) {
 }
 
 static void process_swap_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_swap_set_flags(gameboy, &value);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void cpu_srl_set_flags(struct emulator *gameboy, uint8_t *value) {
@@ -2748,11 +2748,11 @@ static void process_srl_l(struct emulator *gameboy) {
 }
 
 static void process_srl_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_srl_set_flags(gameboy, &value);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void cpu_bit_set_flags(struct emulator *gameboy, uint8_t *value, unsigned bit) {
@@ -2807,8 +2807,8 @@ static void process_bit_0_l(struct emulator *gameboy) {
 }
 
 static void process_bit_0_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_bit_set_flags(gameboy, &value, 0);
 }
@@ -2856,8 +2856,8 @@ static void process_bit_1_l(struct emulator *gameboy) {
 }
 
 static void process_bit_1_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_bit_set_flags(gameboy, &value, 1);
 }
@@ -2905,8 +2905,8 @@ static void process_bit_2_l(struct emulator *gameboy) {
 }
 
 static void process_bit_2_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_bit_set_flags(gameboy, &value, 2);
 }
@@ -2954,8 +2954,8 @@ static void process_bit_3_l(struct emulator *gameboy) {
 }
 
 static void process_bit_3_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_bit_set_flags(gameboy, &value, 3);
 }
@@ -3003,8 +3003,8 @@ static void process_bit_4_l(struct emulator *gameboy) {
 }
 
 static void process_bit_4_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_bit_set_flags(gameboy, &value, 4);
 }
@@ -3052,8 +3052,8 @@ static void process_bit_5_l(struct emulator *gameboy) {
 }
 
 static void process_bit_5_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_bit_set_flags(gameboy, &value, 5);
 }
@@ -3101,8 +3101,8 @@ static void process_bit_6_l(struct emulator *gameboy) {
 }
 
 static void process_bit_6_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_bit_set_flags(gameboy, &value, 6);
 }
@@ -3150,414 +3150,414 @@ static void process_bit_7_l(struct emulator *gameboy) {
 }
 
 static void process_bit_7_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     cpu_bit_set_flags(gameboy, &value, 7);
 }
 
-static void reset_cpu(struct emulator *gameboy, uint8_t *value, unsigned bit) {
+static void restart_cpu(struct emulator *gameboy, uint8_t *value, unsigned bit) {
     *value = *value & ~(1U << bit);
 }
 
 static void process_res_0_a(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->a, 0);
+    restart_cpu(gameboy, &cpu->a, 0);
 }
 
 static void process_res_0_b(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->b, 0);
+    restart_cpu(gameboy, &cpu->b, 0);
 }
 
 static void process_res_0_c(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->c, 0);
+    restart_cpu(gameboy, &cpu->c, 0);
 }
 
 static void process_res_0_d(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->d, 0);
+    restart_cpu(gameboy, &cpu->d, 0);
 }
 
 static void process_res_0_e(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->e, 0);
+    restart_cpu(gameboy, &cpu->e, 0);
 }
 
 static void process_res_0_h(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->h, 0);
+    restart_cpu(gameboy, &cpu->h, 0);
 }
 
 static void process_res_0_l(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->l, 0);
+    restart_cpu(gameboy, &cpu->l, 0);
 }
 
 static void process_res_0_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
-    reset_cpu(gameboy, &value, 0);
-    cpu_writeb(gameboy, hl, value);
+    restart_cpu(gameboy, &value, 0);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_res_1_a(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->a, 1);
+    restart_cpu(gameboy, &cpu->a, 1);
 }
 
 static void process_res_1_b(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->b, 1);
+    restart_cpu(gameboy, &cpu->b, 1);
 }
 
 static void process_res_1_c(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->c, 1);
+    restart_cpu(gameboy, &cpu->c, 1);
 }
 
 static void process_res_1_d(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->d, 1);
+    restart_cpu(gameboy, &cpu->d, 1);
 }
 
 static void process_res_1_e(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->e, 1);
+    restart_cpu(gameboy, &cpu->e, 1);
 }
 
 static void process_res_1_h(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->h, 1);
+    restart_cpu(gameboy, &cpu->h, 1);
 }
 
 static void process_res_1_l(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->l, 1);
+    restart_cpu(gameboy, &cpu->l, 1);
 }
 
 static void process_res_1_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
-    reset_cpu(gameboy, &value, 1);
-    cpu_writeb(gameboy, hl, value);
+    restart_cpu(gameboy, &value, 1);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_res_2_a(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->a, 2);
+    restart_cpu(gameboy, &cpu->a, 2);
 }
 
 static void process_res_2_b(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->b, 2);
+    restart_cpu(gameboy, &cpu->b, 2);
 }
 
 static void process_res_2_c(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->c, 2);
+    restart_cpu(gameboy, &cpu->c, 2);
 }
 
 static void process_res_2_d(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->d, 2);
+    restart_cpu(gameboy, &cpu->d, 2);
 }
 
 static void process_res_2_e(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->e, 2);
+    restart_cpu(gameboy, &cpu->e, 2);
 }
 
 static void process_res_2_h(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->h, 2);
+    restart_cpu(gameboy, &cpu->h, 2);
 }
 
 static void process_res_2_l(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->l, 2);
+    restart_cpu(gameboy, &cpu->l, 2);
 }
 
 static void process_res_2_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
-    reset_cpu(gameboy, &value, 2);
-    cpu_writeb(gameboy, hl, value);
+    restart_cpu(gameboy, &value, 2);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_res_3_a(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->a, 3);
+    restart_cpu(gameboy, &cpu->a, 3);
 }
 
 static void process_res_3_b(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->b, 3);
+    restart_cpu(gameboy, &cpu->b, 3);
 }
 
 static void process_res_3_c(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->c, 3);
+    restart_cpu(gameboy, &cpu->c, 3);
 }
 
 static void process_res_3_d(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->d, 3);
+    restart_cpu(gameboy, &cpu->d, 3);
 }
 
 static void process_res_3_e(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->e, 3);
+    restart_cpu(gameboy, &cpu->e, 3);
 }
 
 static void process_res_3_h(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->h, 3);
+    restart_cpu(gameboy, &cpu->h, 3);
 }
 
 static void process_res_3_l(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->l, 3);
+    restart_cpu(gameboy, &cpu->l, 3);
 }
 
 static void process_res_3_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
-    reset_cpu(gameboy, &value, 3);
-    cpu_writeb(gameboy, hl, value);
+    restart_cpu(gameboy, &value, 3);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_res_4_a(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->a, 4);
+    restart_cpu(gameboy, &cpu->a, 4);
 }
 
 static void process_res_4_b(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->b, 4);
+    restart_cpu(gameboy, &cpu->b, 4);
 }
 
 static void process_res_4_c(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->c, 4);
+    restart_cpu(gameboy, &cpu->c, 4);
 }
 
 static void process_res_4_d(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->d, 4);
+    restart_cpu(gameboy, &cpu->d, 4);
 }
 
 static void process_res_4_e(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->e, 4);
+    restart_cpu(gameboy, &cpu->e, 4);
 }
 
 static void process_res_4_h(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->h, 4);
+    restart_cpu(gameboy, &cpu->h, 4);
 }
 
 static void process_res_4_l(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->l, 4);
+    restart_cpu(gameboy, &cpu->l, 4);
 }
 
 static void process_res_4_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
-    reset_cpu(gameboy, &value, 4);
-    cpu_writeb(gameboy, hl, value);
+    restart_cpu(gameboy, &value, 4);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_res_5_a(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->a, 5);
+    restart_cpu(gameboy, &cpu->a, 5);
 }
 
 static void process_res_5_b(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->b, 5);
+    restart_cpu(gameboy, &cpu->b, 5);
 }
 
 static void process_res_5_c(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->c, 5);
+    restart_cpu(gameboy, &cpu->c, 5);
 }
 
 static void process_res_5_d(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->d, 5);
+    restart_cpu(gameboy, &cpu->d, 5);
 }
 
 static void process_res_5_e(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->e, 5);
+    restart_cpu(gameboy, &cpu->e, 5);
 }
 
 static void process_res_5_h(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->h, 5);
+    restart_cpu(gameboy, &cpu->h, 5);
 }
 
 static void process_res_5_l(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->l, 5);
+    restart_cpu(gameboy, &cpu->l, 5);
 }
 
 static void process_res_5_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
-    reset_cpu(gameboy, &value, 5);
-    cpu_writeb(gameboy, hl, value);
+    restart_cpu(gameboy, &value, 5);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_res_6_a(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->a, 6);
+    restart_cpu(gameboy, &cpu->a, 6);
 }
 
 static void process_res_6_b(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->b, 6);
+    restart_cpu(gameboy, &cpu->b, 6);
 }
 
 static void process_res_6_c(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->c, 6);
+    restart_cpu(gameboy, &cpu->c, 6);
 }
 
 static void process_res_6_d(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->d, 6);
+    restart_cpu(gameboy, &cpu->d, 6);
 }
 
 static void process_res_6_e(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->e, 6);
+    restart_cpu(gameboy, &cpu->e, 6);
 }
 
 static void process_res_6_h(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->h, 6);
+    restart_cpu(gameboy, &cpu->h, 6);
 }
 
 static void process_res_6_l(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->l, 6);
+    restart_cpu(gameboy, &cpu->l, 6);
 }
 
 static void process_res_6_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
-    reset_cpu(gameboy, &value, 6);
-    cpu_writeb(gameboy, hl, value);
+    restart_cpu(gameboy, &value, 6);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_res_7_a(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->a, 7);
+    restart_cpu(gameboy, &cpu->a, 7);
 }
 
 static void process_res_7_b(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->b, 7);
+    restart_cpu(gameboy, &cpu->b, 7);
 }
 
 static void process_res_7_c(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->c, 7);
+    restart_cpu(gameboy, &cpu->c, 7);
 }
 
 static void process_res_7_d(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->d, 7);
+    restart_cpu(gameboy, &cpu->d, 7);
 }
 
 static void process_res_7_e(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->e, 7);
+    restart_cpu(gameboy, &cpu->e, 7);
 }
 
 static void process_res_7_h(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->h, 7);
+    restart_cpu(gameboy, &cpu->h, 7);
 }
 
 static void process_res_7_l(struct emulator *gameboy) {
     struct gameboy_cpu *cpu = &gameboy->cpu;
 
-    reset_cpu(gameboy, &cpu->l, 7);
+    restart_cpu(gameboy, &cpu->l, 7);
 }
 
 static void process_res_7_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
-    reset_cpu(gameboy, &value, 7);
-    cpu_writeb(gameboy, hl, value);
+    restart_cpu(gameboy, &value, 7);
+    write_cpu(gameboy, hl, value);
 }
 
 static void set_cpu(struct emulator *gameboy, uint8_t *value, unsigned bit) {
@@ -3607,11 +3607,11 @@ static void process_set_0_l(struct emulator *gameboy) {
 }
 
 static void process_set_0_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     set_cpu(gameboy, &value, 0);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_set_1_a(struct emulator *gameboy) {
@@ -3657,11 +3657,11 @@ static void process_set_1_l(struct emulator *gameboy) {
 }
 
 static void process_set_1_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     set_cpu(gameboy, &value, 1);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_set_2_a(struct emulator *gameboy) {
@@ -3707,11 +3707,11 @@ static void process_set_2_l(struct emulator *gameboy) {
 }
 
 static void process_set_2_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     set_cpu(gameboy, &value, 2);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_set_3_a(struct emulator *gameboy) {
@@ -3757,11 +3757,11 @@ static void process_set_3_l(struct emulator *gameboy) {
 }
 
 static void process_set_3_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     set_cpu(gameboy, &value, 3);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_set_4_a(struct emulator *gameboy) {
@@ -3807,11 +3807,11 @@ static void process_set_4_l(struct emulator *gameboy) {
 }
 
 static void process_set_4_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     set_cpu(gameboy, &value, 4);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_set_5_a(struct emulator *gameboy) {
@@ -3857,11 +3857,11 @@ static void process_set_5_l(struct emulator *gameboy) {
 }
 
 static void process_set_5_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     set_cpu(gameboy, &value, 5);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_set_6_a(struct emulator *gameboy) {
@@ -3907,11 +3907,11 @@ static void process_set_6_l(struct emulator *gameboy) {
 }
 
 static void process_set_6_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     set_cpu(gameboy, &value, 6);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static void process_set_7_a(struct emulator *gameboy) {
@@ -3957,11 +3957,11 @@ static void process_set_7_l(struct emulator *gameboy) {
 }
 
 static void process_set_7_mhl(struct emulator *gameboy) {
-    uint16_t hl = cpu_hl(gameboy);
-    uint8_t value = cpu_readb(gameboy, hl);
+    uint16_t hl = get_cpu_hl(gameboy);
+    uint8_t value = read_cpu(gameboy, hl);
 
     set_cpu(gameboy, &value, 7);
-    cpu_writeb(gameboy, hl, value);
+    write_cpu(gameboy, hl, value);
 }
 
 static gameboy_instruction gameboy_instructions_cb[0x100] = {

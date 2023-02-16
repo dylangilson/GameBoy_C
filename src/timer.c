@@ -55,7 +55,7 @@ void sync_timer(struct emulator *gameboy) {
         count -= 0x100;
         count += timer->modulo;
 
-        gb_irq_trigger(gameboy, GB_INTERRUPT_REQUEST_TIMER);
+        trigger_interrupt_request(gameboy, GB_INTERRUPT_REQUEST_TIMER);
     }
 
     timer->counter = count;
