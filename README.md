@@ -36,7 +36,7 @@ using the C programming language with SDL2 as the window system
 
 ```sh
 make
-./gameboy_c ../roms/<ROM_FILE_NAME>.gb
+./gameboy_c ../roms/<ROM_FILE_NAME>
 ```
 
 * IMPORTANT: Only runs on Linux Operating System Distributions
