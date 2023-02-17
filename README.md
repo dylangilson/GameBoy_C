@@ -67,9 +67,8 @@ to allow for faster gameplayby increasing 1U (default speed)
 to 2U (double speed), 3U (triple speed) etc.
 
 ## References
-- https://gbdev.io/pandocs/
-- https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
-- [Game Boy (LR35902) OP Codes](docs/Game%20Boy%20(LR35902)%20OP%20Codes.html)
+- [Pan Docs](https://gbdev.io/pandocs/)
+- [Game Boy (LR35902) OP Codes](https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 - [Game Boy Complete Technical Refercence](docs/Game%20Boy%20Complete%20Technical%20Reference.pdf)
 - [The Cycle-Accurate Game Boy Docs](docs/The%20Cycle-Accurate%20Game%20Boy%20Docs.pdf)
 
