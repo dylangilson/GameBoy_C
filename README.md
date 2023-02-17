@@ -1,91 +1,82 @@
+# GameBoy C
+&emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp;
+![sample1](sample_gameplay/pokemon.gif)
+
+## Table of Contents
+- [Gameboy C Emulator](#gameboy-c-emulator)
+- [Features](#features)
+- [Controls](#controls)
+- [Installation (Compilation and Running)](#installation-compilation-and-running)
+- [References](#references)
+- [Dependencies](#dependencies)
+- [Dependency Installation](#dependency-installation)
+- [CPU Speed](#cpu-speed)
+- [License](#license)
+
+## Gameboy C Emulator
+An implementation of a GameBoy (DMG) and a GameBoy Color (GBC) written
+using the C programming language with SDL2 as the window system
+
+## Features
+* Original GameBoy Gameplay
+* GameBoy Color Gameplay
+* Audio
+* Optional Controller Input
+
+## Controls
+* A - A button
+* B - B button
+* Enter - Start button
+* Left OR Right Shift - Select button
+* Arrow Keys - D-Pad
+* ESC - Quit emulator
+
+## Installation (Compilation and Running)
+* change directory to the 'src' folder of the project, then running the following commands:
+
+```sh
+make
+./gameboy_c ../roms/<ROM_FILE_NAME>.gb
+```
+
+* IMPORTANT: Only runs on Linux Operating System Distributions
+* IMPORTANT: Ensure the ROM you wish to load is in the 'roms' folder of this project
+* IMPORTANT: Will work with both GameBoy and GameBoy Color ROMs
+
+<br>
+
+![sample2](sample_gameplay/zelda.gif) ![sample3](sample_gameplay/tetris.gif)
+
 ## References
 - https://gbdev.io/pandocs/
 - https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
-- Game Boy (LR35902) OP Codes
-- Game Boy Complete Technical Refercence
-- The Cycle-Accurate Game Boy Docs
+- [Game Boy (LR35902) OP Codes](docs/Game%20Boy%20(LR35902)%20OP%20Codes.html)
+- [Game Boy Complete Technical Refercence](docs/Game%20Boy%20Complete%20Technical%20Reference.pdf)
+- [The Cycle-Accurate Game Boy Docs](docs/The%20Cycle-Accurate%20Game%20Boy%20Docs.pdf)
 
 ## Dependencies
-* Ubuntu Linux:
-	- install SDL2 kit using command: sudo apt install libsdl2-dev
-	- install SDL2 ttf using command: sudo apt install libsdl2-ttf-dev
-	- install build essentials using command: sudo apt install build-essential
+* SDL2
+* libpthread
 
-## Compilation and Running the Emulator
-* change directory to the 'src' folder of the project
-* execute command: make
-* execute command: ./gameboy_c ../roms/<ROM_FILE_NAME>
-* NOTE: Only runs on Linux Operating System Distributions
-* NOTE: Ensure the ROM you wish to load is in the 'roms' folder of this project
-* NOTE: Will work with .gb and .gbc ROMs
+## Dependency Installation
+* Debian Linux Distributions (e.g. Ubuntu):
+	- install SDL2 kit, SDL2 ttf and build-essential using commands: 
 
-# Getting Started with Create React App
+```sh
+sudo apt install libsdl2-dev
+sudo apt install libsdl2-ttf-dev
+sudo apt install build-essential
+```
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## CPU Speed
+Using line 33 in emulator.h, the CPU speed can be increased 
+to allow for faster gameplayby increasing 1U (default speed)
+to 2U (double speed), 3U (triple speed) etc.
 
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## License
+Eliseo Copyright 2023
+<br>
+Code released under the [MIT License](LICENSE)
+<br>
+Sample gameplay images are taken from licensed Nintendo 
+and GameFreak GameBoy and GameBoy Color cartridges

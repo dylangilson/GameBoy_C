@@ -30,7 +30,7 @@ struct emulator;
 #include "ui.h"
 #include "ui.h"
 
-#define EMULATION_SPEED 3U // NOTE: change this to increase / decrease game speed
+#define EMULATION_SPEED 1U // NOTE: change this to increase / decrease game speed
 #define CPU_FREQUENCY_HZ 4194304U * EMULATION_SPEED // CPU frequency ; Super GameBoy runs slightly faster at 4.295454MHz
 
 struct emulator {
