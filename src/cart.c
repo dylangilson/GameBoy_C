@@ -1,7 +1,7 @@
 /*
  * Dylan Gilson
  * dylan.gilson@outlook.com
- * Feburary 13, 2023
+ * February 13, 2023
  */
 
 #include <ctype.h>

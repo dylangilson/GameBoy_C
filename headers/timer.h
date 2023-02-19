@@ -1,7 +1,7 @@
 /*
  * Dylan Gilson
  * dylan.gilson@outlook.com
- * Feburary 8, 2023
+ * February 8, 2023
  */
 
 #ifndef TIMER_H

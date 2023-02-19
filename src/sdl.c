@@ -1,7 +1,7 @@
 /*
  * Dylan Gilson
  * dylan.gilson@outlook.com
- * Feburary 15, 2023
+ * February 15, 2023
  */
 
 #include <SDL.h>

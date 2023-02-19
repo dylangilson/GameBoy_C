@@ -1,7 +1,7 @@
 /*
  * Dylan Gilson
  * dylan.gilson@outlook.com
- * Feburary 9, 2023
+ * February 9, 2023
  */
 
 // Real-Time Clock

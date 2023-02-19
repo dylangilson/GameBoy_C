@@ -1,7 +1,7 @@
 /*
  * Dylan Gilson
  * dylan.gilson@outlook.com
- * Feburary 14, 2023
+ * February 14, 2023
  */
 
 #include "emulator.h"
