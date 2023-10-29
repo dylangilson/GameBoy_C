@@ -36,7 +36,7 @@ using the C programming language with SDL2 as the graphics and audio handler
 
 ```sh
 make
-./gameboy_c ../roms/<ROM_FILE_NAME>
+./gameboy_c ../roms/<ROM_FILE_NAME>.gb
 ```
 
 * IMPORTANT: Only runs on Linux Operating System Distributions
@@ -63,7 +63,7 @@ sudo apt install build-essential
 
 ## CPU Speed
 Using line 33 in emulator.h, the CPU speed can be increased 
-to allow for faster gameplayby increasing 1U (default speed)
+to allow for faster gameplay by increasing 1U (default speed)
 to 2U (double speed), 3U (triple speed) etc.
 
 ## References
